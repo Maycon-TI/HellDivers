@@ -1,6 +1,7 @@
 package com.example.helldivers.Lobby
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,8 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +33,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -80,14 +86,77 @@ fun LobbyView(
 
 @Composable
 fun GalacticWar(){
-    Text(
-        modifier = Modifier.padding(16.dp),
-        fontFamily = pixelifySansFamily,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 25.sp,
-        color = Color.White,
-        text = "NOTE: War is war"
-    )
+    Column {
+        Row {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)){
+                TextGame("Enemies killed", 25.sp, Color.White)
+                TextGame("0", 25.sp, Color.White)
+                TextGame("Bullets Fired", 25.sp, Color.White)
+                TextGame("0", 25.sp, Color.White)
+            }
+            
+            Column {
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    TextGame("- = Galactic War = -", 25.sp, Color.White)
+                }
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ){
+                    items(presenter.getList().size) { index ->
+                        val sector = presenter.getSector(index)
+                        WorldsWarMap(sector)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WorldsWarMap(sector: Sector) {
+    Card (
+        modifier = Modifier
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Black,
+        ),
+        border = BorderStroke(1.dp, Color.Yellow),
+        ){
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Row (modifier = Modifier.fillMaxWidth()){
+                SymbolImage(sector.symbol)
+                Row (modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                ){
+                    TextGame(sector.nameSector, 16.sp, presenter.GetColorTextBySymbol(sector.symbol))
+                }
+            }
+            TextGame(presenter.BarOfPercentageLiberated(sector.liberated), 16.sp, presenter.GetColorTextBySymbol(sector.symbol))
+            TextGame("${sector.liberated * 100}% Liberated", 16.sp, Color.White)
+        }
+    }
+}
+
+@Composable
+fun SymbolImage(symbol: String) {
+    when (symbol) {
+        "Automatons" -> ImageGame(painterResource(id = R.drawable.symbol_automatons))
+        "Terminds" -> ImageGame(painterResource(id = R.drawable.symbol_terminds))
+        "Super Earth" -> ImageGame(painterResource(id = R.drawable.symbol_super_earth))
+    }
 }
 
 @Composable
@@ -108,8 +177,8 @@ fun Acquisitions(){
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
     ){
-        itemCount(2, 0, painterResource(id = R.drawable.super_credits))
-        itemCount(2, 0, painterResource(id = R.drawable.democracy_medals))
+        ItemCount(2, 0, painterResource(id = R.drawable.super_credits))
+        ItemCount(2, 0, painterResource(id = R.drawable.democracy_medals))
     }
 }
 
@@ -156,13 +225,13 @@ fun Money(){
         verticalAlignment = Alignment.CenterVertically
     ){
         Column{
-            itemCount(1, 0, painterResource(id = R.drawable.republic_points))
-            itemCount(1, 0, painterResource(id = R.drawable.super_credits))
+            ItemCount(1, 0, painterResource(id = R.drawable.republic_points))
+            ItemCount(1, 0, painterResource(id = R.drawable.super_credits))
         }
-        itemCount(0, 0, painterResource(id = R.drawable.democracy_medals))
-        itemCount(0, 0, painterResource(id = R.drawable.common_sample))
-        itemCount(0, 0, painterResource(id = R.drawable.rare_sample))
-        itemCount(0, 0, painterResource(id = R.drawable.super_sample))
+        ItemCount(0, 0, painterResource(id = R.drawable.democracy_medals))
+        ItemCount(0, 0, painterResource(id = R.drawable.common_sample))
+        ItemCount(0, 0, painterResource(id = R.drawable.rare_sample))
+        ItemCount(0, 0, painterResource(id = R.drawable.super_sample))
         Text(text = "Level 0",
             fontSize = 25.sp,
             fontFamily = pixelifySansFamily,
@@ -171,50 +240,55 @@ fun Money(){
 }
 
 @Composable
-fun itemCount(type: Int, count: Int, painterResource: Painter){
-    if (type == 0) {
-        Column(
-            modifier = Modifier.padding(horizontal = 5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource,
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
-            Text(text = count.toString(),
-                fontFamily = pixelifySansFamily,
-                fontWeight = FontWeight.ExtraBold)
+fun ItemCount(type: Int, count: Int, painterResource: Painter){
+    when (type) {
+        0 -> {
+            Column(
+                modifier = Modifier.padding(horizontal = 5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ImageGame(painterResource = painterResource)
+                TextGame(count = count.toString(), sp = 16.sp, color = Color.White)
+            }
         }
-    }else if (type == 1){
-        Row (
-            modifier = Modifier.padding(horizontal = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Text(text = count.toString(),
-                fontFamily = pixelifySansFamily,
-                fontWeight = FontWeight.ExtraBold)
-            Image(
-                painter = painterResource,
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
+        1 -> {
+            Row (
+                modifier = Modifier.padding(horizontal = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextGame(count = count.toString(), sp = 16.sp, color = Color.White)
+                ImageGame(painterResource = painterResource)
+            }
         }
-    }else if (type == 2){
-        Row (
-            modifier = Modifier.padding(horizontal = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Image(
-                painter = painterResource,
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
-            Text(text = count.toString(),
-                fontFamily = pixelifySansFamily,
-                fontWeight = FontWeight.ExtraBold)
+        2 -> {
+            Row (
+                modifier = Modifier.padding(horizontal = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ImageGame(painterResource = painterResource)
+                TextGame(count = count.toString(), sp = 16.sp, color = Color.White)
+            }
         }
     }
+}
+
+@Composable
+fun TextGame(count: String, sp: TextUnit, color: Color){
+    Text(text = count,
+        fontFamily = pixelifySansFamily,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = sp,
+        color = color
+    )
+}
+
+@Composable
+fun ImageGame(painterResource: Painter){
+    Image(
+        painter = painterResource,
+        contentDescription = null,
+        contentScale = ContentScale.None
+    )
 }
 
 @Composable

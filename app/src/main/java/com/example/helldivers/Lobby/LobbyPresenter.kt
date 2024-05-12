@@ -1,21 +1,24 @@
 package com.example.helldivers.Lobby
 
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.graphics.Color
 
-val model = LobbyModel()
+private val model = LobbyModel()
 
 class LobbyPresenter(){
-
-    fun getOption(): String{
-        return model.option1
+    fun getList(): MutableList<Sector> {
+        return model.getList()
     }
 
-    fun alternateOption1(option: String){
-        model.alternateOption1(option)
+    fun GetColorTextBySymbol(symbol: String): Color {
+        return model.ColorText(symbol)
     }
 
-    fun optionSelect(text: String): TextUnit {
-        return model.optionSelect(text)
+    fun BarOfPercentageLiberated(liberated: Float): String{
+        return model.barOfPercentageLiberated(liberated)
     }
 
+    fun getSector(index: Int): Sector {
+        return model.getSector(index)
+    }
 }
+
