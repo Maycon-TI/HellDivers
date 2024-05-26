@@ -1,6 +1,7 @@
 package com.example.helldivers.Lobby
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,9 +10,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -31,29 +34,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.helldivers.Constantes
+import com.example.helldivers.entity.Sector
 import com.example.helldivers.R
+import com.example.helldivers.Screen
 import com.example.helldivers.ui.theme.pixelifySansFamily
 
 private var presenter = LobbyPresenter()
 
-//private val optionSelected1 = MutableStateFlow("| GALACTIC WAR |")
-
-var optionSelected1 = mutableStateOf("| GALACTIC WAR |")
-var optionSelected2 = mutableStateOf("| GALACTIC WAR |")
-
+var optionSelected1 = mutableStateOf(Constantes.ORDERS.description)
+var optionSelected2 = mutableStateOf(Constantes.CREDITS.description)
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun LobbyView(
     navController: NavController
 ) {
-
     Column {
         Row(
             modifier = Modifier
@@ -61,17 +64,23 @@ fun LobbyView(
                 .background(Color.Gray),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            listOf("| GALACTIC WAR |", "| SHIP MANAGEMENT |", "| ARMORY |", "| ACQUISITIONS |", "| ORDERS |").forEach { text ->
+            listOf(
+                Constantes.GALACTIC_WAR.description,
+                Constantes.SHIP_MANAGEMENT.description,
+                Constantes.ARMORY.description,
+                Constantes.ACQUISITIONS.description,
+                Constantes.ORDERS.description
+            ).forEach { text ->
                 TextClickable(text = text, optionSelected1)
             }
         }
         Row {
             when (optionSelected1.value) {
-                "| GALACTIC WAR |" -> { GalacticWar() }
-                "| SHIP MANAGEMENT |" -> { ShipManagement() }
-                "| ARMORY |" -> { Armory() }
-                "| ACQUISITIONS |" -> { Acquisitions() }
-                "| ORDERS |" -> { Orders() }
+                Constantes.GALACTIC_WAR.description -> { GalacticWar(navController) }
+                Constantes.SHIP_MANAGEMENT.description -> { ShipManagement() }
+                Constantes.ARMORY.description -> { Armory() }
+                Constantes.ACQUISITIONS.description -> { Acquisitions() }
+                Constantes.ORDERS.description -> { Orders() }
             }
         }
     }
@@ -85,7 +94,7 @@ fun LobbyView(
 }
 
 @Composable
-fun GalacticWar(){
+fun GalacticWar(navController: NavController) {
     Column {
         Row {
             Column(modifier = Modifier.padding(horizontal = 16.dp)){
@@ -94,7 +103,7 @@ fun GalacticWar(){
                 TextGame("Bullets Fired", 25.sp, Color.White)
                 TextGame("0", 25.sp, Color.White)
             }
-            
+
             Column {
                 Row (
                     modifier = Modifier
@@ -112,7 +121,7 @@ fun GalacticWar(){
                 ){
                     items(presenter.getList().size) { index ->
                         val sector = presenter.getSector(index)
-                        WorldsWarMap(sector)
+                        WorldsWarMap(sector, navController)
                     }
                 }
             }
@@ -121,14 +130,34 @@ fun GalacticWar(){
 }
 
 @Composable
-fun WorldsWarMap(sector: Sector) {
+fun WorldsWarMap(sector: Sector, navController: NavController) {
+    val context = LocalContext.current
     Card (
         modifier = Modifier
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable {
+                if (sector.liberated >= 1.0f)
+                    Toast
+                        .makeText(
+                            context,
+                            "Completed",
+                            Toast.LENGTH_SHORT
+                        )
+                        .show()
+                else {
+                    navController.navigate(
+                        route = Screen.settingGameDifficultyView.route +
+                                "/${sector.symbol}" +
+                                "/${sector.nameSector}" +
+                                "/${sector.liberated}"
+                    )
+                }
+            },
         colors = CardDefaults.cardColors(
             containerColor = Color.Black,
         ),
-        border = BorderStroke(1.dp, Color.Yellow),
+        border = BorderStroke(1.dp, Color.Yellow)
+
         ){
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -151,28 +180,30 @@ fun WorldsWarMap(sector: Sector) {
 }
 
 @Composable
-fun SymbolImage(symbol: String) {
-    when (symbol) {
-        "Automatons" -> ImageGame(painterResource(id = R.drawable.symbol_automatons))
-        "Terminds" -> ImageGame(painterResource(id = R.drawable.symbol_terminds))
-        "Super Earth" -> ImageGame(painterResource(id = R.drawable.symbol_super_earth))
-    }
-}
-
-@Composable
 fun ShipManagement(){
-    ListButton(listOf("| DESTROYER |", "| STRATAGEMS |", "| SHIP MODULE |"), optionSelected2)
+    ListButton(listOf(
+        Constantes.DESTROYER.description,
+        Constantes.STRATAGEMS.description,
+        Constantes.SHIP_MODULE.description), optionSelected2)
     Money()
 }
 
 @Composable
 fun Armory(){
-    ListButton(listOf("| WEAPONRY |", "| ARMORY |", "| CHARACTER |", "| BOOSTER |", "| CAREER |"), optionSelected2)
+    ListButton(listOf(
+        Constantes.WEAPONRY.description,
+        Constantes.ARMORY.description,
+        Constantes.CHARACTER.description,
+        Constantes.BOOSTER.description,
+        Constantes.CAREER.description), optionSelected2)
 }
 
 @Composable
 fun Acquisitions(){
-    ListButton(listOf("| WARBONDS |", "| SUPERSTORE |", "| SUPER CREDITS |"), optionSelected2)
+    ListButton(listOf(
+        Constantes.WARBONDS.description,
+        Constantes.SUPERSTORE.description,
+        Constantes.SUPER_CREDITS.description), optionSelected2)
     Row (
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
@@ -184,9 +215,36 @@ fun Acquisitions(){
 
 @Composable
 fun Orders(){
-    ListButton(listOf("| GAME |", "| SOCIAL |", "| OPTIONS |", "| PLAY TUTORIAL |", "| CREDITS |", "| QUIT GAME |"), optionSelected2)
-    Money()
+    ListButton(listOf(
+        Constantes.GAME.description,
+        Constantes.OPTIONS.description,
+        Constantes.PLAY_TUTORIAL.description,
+        Constantes.CREDITS.description,
+        Constantes.QUIT_GAME.description), optionSelected2)
+    Column {
+        Money()
+        when (optionSelected2.value){
+            Constantes.CREDITS.description -> {
+                Column (modifier = Modifier
+                    .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    TextGame(count = "\n░▒▓ Créditos do Jogo ▓▒░\n", sp = 20.sp, color = Color.White)
+                    TextGame(count = "- Desenvolvimento -\n", sp = 20.sp, color = Color.White)
+                    TextGame(count = "Designers de Jogo: [Puudimmmm]\n" +
+                            "Programadores: [Puudimmmm, Siegmayer]\n" +
+                            "Artistas: [Puudimmmm]\n", sp = 20.sp, color = Color.White)
+                    TextGame(count = "░▒▓ GitHub ▓▒░\n", sp = 20.sp, color = Color.White)
+                    TextGame(
+                        count = "Puudimmmmm (Maycon-TI)\n" +
+                                "Siegmayer (Douglas-TI)\n", sp = 20.sp, color = Color.White)
+                }
+            }
+        }
+    }
 }
+
+
 
 @Composable
 fun ListButton(list: List<String>, optionSelected2: MutableState<String>){
@@ -199,11 +257,11 @@ fun ListButton(list: List<String>, optionSelected2: MutableState<String>){
 }
 
 @Composable
-fun TextClickable(text: String, optionSelected1: MutableState<String>) {
+fun TextClickable(text: String, optionSelected: MutableState<String>) {
     var textSize by remember { mutableStateOf(25.sp) }
 
-    LaunchedEffect(optionSelected1.value) {
-        textSize = if (optionSelected1.value == text) 40.sp else 25.sp
+    LaunchedEffect(optionSelected.value) {
+        textSize = if (optionSelected.value == text) 40.sp else 25.sp
     }
 
     Text(
@@ -213,7 +271,7 @@ fun TextClickable(text: String, optionSelected1: MutableState<String>) {
         text = text,
         modifier = Modifier
             .padding(5.dp)
-            .clickable { optionSelected1.value = text }
+            .clickable { optionSelected.value = text }
     )
 }
 
@@ -292,11 +350,20 @@ fun ImageGame(painterResource: Painter){
 }
 
 @Composable
+fun SymbolImage(symbol: String) {
+    when (symbol) {
+        Constantes.AUTOMATONS.description -> ImageGame(painterResource(id = R.drawable.symbol_automatons))
+        Constantes.TERMINDS.description -> ImageGame(painterResource(id = R.drawable.symbol_terminds))
+        Constantes.SUPER_EARTH.description -> ImageGame(painterResource(id = R.drawable.symbol_super_earth))
+    }
+}
+
+@Composable
 private fun Version(){
     Row (modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End){
         Text(
-            text = "0.0.0v",
+            text = Constantes.VERSION.description,
             fontFamily = pixelifySansFamily,
             fontWeight = FontWeight.ExtraBold,
         )

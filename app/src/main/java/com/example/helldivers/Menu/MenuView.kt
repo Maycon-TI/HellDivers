@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.helldivers.Constantes
 import com.example.helldivers.R
 import com.example.helldivers.ui.theme.pixelifySansFamily
 
@@ -46,17 +47,16 @@ fun MenuView(
         fontWeight = FontWeight.ExtraBold,
         fontSize = 15.sp,
         color = Color.White,
-        text = "NOTE: Some game data are stored locally, and cannot" +
-                "\n be restored if you delete the game."
+        text = Constantes.NOTE.description
     )
 
     Image(
-        painter = painterResource(id = R.drawable.background1),
+        painter = painterResource(id = R.drawable.background),
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.FillWidth,
     )
-
+    
     Column (
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom
@@ -144,7 +144,7 @@ private fun Version(){
     Row (modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End){
         Text(
-            text = "0.0.0v",
+            text = Constantes.VERSION.description,
             fontFamily = pixelifySansFamily,
             fontWeight = FontWeight.ExtraBold,
         )
